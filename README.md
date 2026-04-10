@@ -1,6 +1,6 @@
-# Serenidad - Gestión de Gabinete Psicológico
+# Gabinete Psicológico - Gestión Profesional
 
-**Serenidad** es una plataforma de gestión integral para psicólogos y gabinetes de terapia. Diseñada con un enfoque cálido y acogedor, permite gestionar pacientes, citas y facturación de forma sencilla y profesional.
+**Gabinete Psicológico** es una plataforma de gestión integral para psicólogos y gabinetes de terapia. Diseñada con un enfoque cálido y acogedor, permite gestionar pacientes, citas y facturación de forma sencilla y profesional.
 
 ## 🚀 Características
 

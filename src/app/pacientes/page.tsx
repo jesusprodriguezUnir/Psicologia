@@ -117,6 +117,9 @@ export default function PatientsPage() {
                 </td>
                 <td style={{ padding: '20px 24px' }}>
                   <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={() => handleEdit(patient)} className="btn btn-ghost" style={{ padding: '8px' }} title="Ver Ficha y Editar">
+                      <ExternalLink size={18} />
+                    </button>
                     <button onClick={() => handleEdit(patient)} className="btn btn-ghost" style={{ padding: '8px' }} title="Editar">
                       <Pencil size={18} />
                     </button>

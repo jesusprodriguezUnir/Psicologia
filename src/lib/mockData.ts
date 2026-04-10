@@ -3,9 +3,9 @@
  * Manages patients, appointments, and invoices in localStorage for high-fidelity demos.
  */
 
-const STORAGE_KEY_PATIENTS = 'serenidad_mock_patients';
-const STORAGE_KEY_APPOINTMENTS = 'serenidad_mock_appointments';
-const STORAGE_KEY_INVOICES = 'serenidad_mock_invoices';
+const STORAGE_KEY_PATIENTS = 'clinic_mock_patients';
+const STORAGE_KEY_APPOINTMENTS = 'clinic_mock_appointments';
+const STORAGE_KEY_INVOICES = 'clinic_mock_invoices';
 
 // --- Initial Seed Data ---
 
@@ -45,8 +45,8 @@ const INITIAL_APPOINTMENTS = [
     patient_name: 'Julia Sánchez',
     patient_phone: '+34 600 123 456',
     patient_email: 'julia@example.com',
-    time: '10:00',
-    date: new Date().toISOString(), 
+    startTime: new Date().toISOString(), 
+    endTime: new Date(new Date().getTime() + 60 * 60 * 1000).toISOString(),
     type: 'first_visit',
     notes: 'Ansiedad recurrente.'
   },
@@ -56,8 +56,8 @@ const INITIAL_APPOINTMENTS = [
     patient_name: 'Carlos Mendoza',
     patient_phone: '+34 600 987 654',
     patient_email: 'carlos@example.com',
-    time: '12:30',
-    date: new Date().toISOString(),
+    startTime: new Date().toISOString(),
+    endTime: new Date(new Date().getTime() + 60 * 60 * 1000).toISOString(),
     type: 'followup',
     notes: 'Revisión mensual.'
   }
@@ -111,12 +111,20 @@ export const mockStorage = {
   // Appointments
   getAppointments: () => {
     const apps = getStoredData(STORAGE_KEY_APPOINTMENTS, INITIAL_APPOINTMENTS);
-    return apps.map((a: any) => ({ ...a, date: new Date(a.date) }));
+    return apps.map((a: any) => ({ 
+      ...a, 
+      startTime: new Date(a.startTime),
+      endTime: new Date(a.endTime)
+    }));
   },
   saveAppointment: (app: any) => {
     const apps = getStoredData(STORAGE_KEY_APPOINTMENTS, INITIAL_APPOINTMENTS);
     const index = apps.findIndex((a: any) => a.id === app.id);
-    const dataToSave = { ...app, date: app.date.toISOString() };
+    const dataToSave = { 
+      ...app, 
+      startTime: app.startTime.toISOString(),
+      endTime: app.endTime.toISOString()
+    };
     if (index >= 0) {
       apps[index] = { ...apps[index], ...dataToSave };
     } else {

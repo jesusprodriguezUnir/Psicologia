@@ -7,8 +7,8 @@ export type Appointment = {
   patient_name: string;
   patient_phone: string;
   patient_email: string;
-  time: string;
-  date: Date;
+  startTime: Date;
+  endTime: Date;
   type: 'first_visit' | 'followup' | 'urgent';
   notes: string;
 };

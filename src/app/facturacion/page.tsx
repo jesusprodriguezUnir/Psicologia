@@ -21,6 +21,33 @@ export default function InvoicesPage() {
     loadInvoices();
   }, []);
 
+  const handleExport = () => {
+    const headers = ['Nº Factura', 'Paciente', 'Fecha', 'Concepto', 'Importe', 'Estado'];
+    const rows = invoices.map(inv => [
+      inv.id,
+      inv.patientName,
+      inv.date,
+      inv.description,
+      inv.amount.toFixed(2),
+      inv.status === 'paid' ? 'Pagada' : 'Pendiente'
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(r => r.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `facturas_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const totalAmount = invoices.reduce((sum, inv) => sum + inv.amount, 0);
   const paidAmount = invoices.filter(i => i.status === 'paid').reduce((sum, inv) => sum + inv.amount, 0);
   const pendingAmount = totalAmount - paidAmount;
@@ -33,7 +60,7 @@ export default function InvoicesPage() {
           <p className="text-muted" style={{ margin: 0 }}>Gestiona tus ingresos y emite facturas a tus pacientes.</p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button className="btn btn-secondary"><Download size={18} /> Exportar</button>
+          <button className="btn btn-secondary" onClick={handleExport}><Download size={18} /> Exportar</button>
           <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
             <Plus size={18} /> Nueva Factura
           </button>

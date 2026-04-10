@@ -23,8 +23,9 @@ import {
   ChevronLeft, ChevronRight, Plus, Mail, MessageCircle, 
   User, Clock, LayoutGrid, List, Columns 
 } from 'lucide-react';
-import { getAppointments, Appointment, saveAppointment } from '@/lib/api';
 import AppointmentModal from '@/components/AppointmentModal';
+import PatientModal from '@/components/PatientModal';
+import { getAppointments, saveAppointment, getPatients, Appointment } from '@/lib/api';
 
 type ViewMode = 'month' | 'week' | 'day';
 
@@ -41,6 +42,10 @@ export default function CalendarPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalDefaultTime, setModalDefaultTime] = useState('10:00');
   const [modalAppointment, setModalAppointment] = useState<Appointment | null>(null);
+
+  // Patient Modal State
+  const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
+  const [selectedPatientForModal, setSelectedPatientForModal] = useState<any>(null);
 
   // Load appointments
   const loadData = async () => {
@@ -80,6 +85,16 @@ export default function CalendarPage() {
   const handleEditAppointment = (app: Appointment) => {
     setModalAppointment(app);
     setIsModalOpen(true);
+  };
+
+  const handleViewPatient = async (patientId?: string) => {
+    if (!patientId) return;
+    const allPatients = await getPatients();
+    const patient = allPatients.find((p: any) => p.id === patientId);
+    if (patient) {
+      setSelectedPatientForModal(patient);
+      setIsPatientModalOpen(true);
+    }
   };
 
   // --- RENDERS ---
@@ -153,7 +168,7 @@ export default function CalendarPage() {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', backgroundColor: 'var(--border-light)' }}>
           {calendarDays.map(day => {
-            const dayApps = appointments.filter(a => isSameDay(a.date, day));
+            const dayApps = appointments.filter(a => isSameDay(a.startTime, day));
             const isCurrentMonth = isSameMonth(day, monthStart);
             const isSelected = isSameDay(day, selectedDate);
             const isToday = isSameDay(day, new Date());
@@ -194,7 +209,7 @@ export default function CalendarPage() {
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
                       }}
                     >
-                      {app.time} {app.patient_name.split(' ')[0]}
+                      {format(app.startTime, 'HH:mm')} {app.patient_name.split(' ')[0]}
                     </div>
                   ))}
                   {dayApps.length > 2 && <div style={{ fontSize: '9px', color: 'var(--text-muted)', textAlign: 'center' }}>+{dayApps.length - 2} más</div>}
@@ -251,9 +266,12 @@ export default function CalendarPage() {
                   ></div>
                 ))}
                 {/* Events for this day */}
-                {appointments.filter(a => isSameDay(a.date, d)).map(app => {
-                  const [h, m] = app.time.split(':').map(Number);
+                {appointments.filter(a => isSameDay(a.startTime, d)).map(app => {
+                  const h = app.startTime.getHours();
+                  const m = app.startTime.getMinutes();
+                  const durationInMinutes = (app.endTime.getTime() - app.startTime.getTime()) / (1000 * 60);
                   const top = (h - 8) * 80 + (m / 60) * 80;
+                  const height = (durationInMinutes / 60) * 80 - 10; // -10 for gap
                   return (
                     <div 
                       key={app.id}
@@ -263,7 +281,7 @@ export default function CalendarPage() {
                         top: `${top}px`,
                         left: '4px',
                         right: '4px',
-                        height: '70px',
+                        height: `${height}px`,
                         backgroundColor: 'rgba(214, 125, 97, 0.15)',
                         borderLeft: '4px solid var(--color-primary)',
                         borderRadius: '6px',
@@ -274,7 +292,7 @@ export default function CalendarPage() {
                         boxShadow: 'var(--shadow-sm)'
                       }}
                     >
-                      <div style={{ fontWeight: 700, color: 'var(--color-primary-dark)' }}>{app.time}</div>
+                      <div style={{ fontWeight: 700, color: 'var(--color-primary-dark)' }}>{format(app.startTime, 'HH:mm')} - {format(app.endTime, 'HH:mm')}</div>
                       <div style={{ fontWeight: 600 }}>{app.patient_name}</div>
                     </div>
                   );
@@ -308,13 +326,13 @@ export default function CalendarPage() {
               <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '24px' }}>{format(selectedDate, "d 'de' MMMM", { locale: es })}</h2>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {appointments.filter(a => isSameDay(a.date, selectedDate)).map(app => (
+                {appointments.filter(a => isSameDay(a.startTime, selectedDate)).map(app => (
                   <div key={app.id} onClick={() => setSelectedAppointment(app)} className="btn-ghost" style={{ padding: '16px', borderRadius: '12px', border: '1px solid var(--border-light)', display: 'block', textAlign: 'left' }}>
-                    <div style={{ fontWeight: 700 }}>{app.time}</div>
+                    <div style={{ fontWeight: 700 }}>{format(app.startTime, 'HH:mm')} - {format(app.endTime, 'HH:mm')}</div>
                     <div>{app.patient_name}</div>
                   </div>
                 ))}
-                {appointments.filter(a => isSameDay(a.date, selectedDate)).length === 0 && (
+                {appointments.filter(a => isSameDay(a.startTime, selectedDate)).length === 0 && (
                   <p className="text-muted">Sin citas agendadas.</p>
                 )}
               </div>
@@ -324,15 +342,15 @@ export default function CalendarPage() {
               <button onClick={() => setSelectedAppointment(null)} className="btn-ghost" style={{ marginBottom: '24px' }}><ChevronLeft size={16} /> Volver</button>
               <h2 className="title-xl" style={{ fontSize: '24px', marginBottom: '8px' }}>{selectedAppointment.patient_name}</h2>
               <p className="text-muted" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Clock size={16} /> {selectedAppointment.time} • {format(selectedAppointment.date, "d 'de' MMM", { locale: es })}
+                <Clock size={16} /> {format(selectedAppointment.startTime, 'HH:mm')} - {format(selectedAppointment.endTime, 'HH:mm')} • {format(selectedAppointment.startTime, "d 'de' MMM", { locale: es })}
               </p>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '32px' }}>
-                 <a href={`https://wa.me/${selectedAppointment.patient_phone.replace(/\s+/g, '')}?text=Hola%20${selectedAppointment.patient_name},%20te%20recuerdo%20tu%20cita%20con%20Serenidad%20el%20día%20${format(selectedAppointment.date, 'd/MM')}%20a%20las%20${selectedAppointment.time}.`} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ backgroundColor: '#25D366' }}>
+                 <a href={`https://wa.me/${selectedAppointment.patient_phone.replace(/\s+/g, '')}?text=Hola%20${selectedAppointment.patient_name},%20te%20recuerdo%20tu%20cita%20con%20nuestro%20Gabinete%20el%20día%20${format(selectedAppointment.startTime, 'd/MM')}%20a%20las%20${format(selectedAppointment.startTime, 'HH:mm')}.`} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ backgroundColor: '#25D366' }}>
                   <MessageCircle size={18} /> Confirmar WhatsApp
                 </a>
                 <button className="btn btn-secondary" onClick={() => handleEditAppointment(selectedAppointment)}>Editar Cita</button>
-                <button className="btn btn-secondary" onClick={() => {/* Redirigir a ficha */}}><User size={18} /> Ver Ficha Paciente</button>
+                <button className="btn btn-secondary" onClick={() => handleViewPatient(selectedAppointment.patientId)}><User size={18} /> Ver Ficha Paciente</button>
               </div>
 
               <div style={{ marginTop: '32px' }}>
@@ -351,6 +369,13 @@ export default function CalendarPage() {
         defaultDate={selectedDate}
         defaultTime={modalDefaultTime}
         appointment={modalAppointment}
+      />
+
+      <PatientModal 
+        isOpen={isPatientModalOpen} 
+        onClose={() => setIsPatientModalOpen(false)} 
+        onSaved={loadData}
+        patient={selectedPatientForModal}
       />
 
     </div>

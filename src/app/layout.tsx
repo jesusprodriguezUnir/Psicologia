@@ -10,7 +10,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: 'Serenidad | Gestión de Gabinete',
+  title: 'Gabinete Psicológico | Gestión Profesional',
   description: 'Aplicación para la gestión de gabinete psicológico',
 };
 

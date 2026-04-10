@@ -27,8 +27,8 @@ export default function Sidebar() {
             <Heart size={20} fill="currentColor" />
           </div>
           <div>
-            <h1 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-main)', margin: 0, lineHeight: 1 }}>Serenidad</h1>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Psicología</span>
+            <h1 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-main)', margin: 0, lineHeight: 1 }}>Psicología</h1>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Clínica</span>
           </div>
         </Link>
       </div>

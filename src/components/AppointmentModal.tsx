@@ -28,7 +28,8 @@ export default function AppointmentModal({
     patientId: '',
     patient_name: '',
     date: '',
-    time: '10:00',
+    startTime: '10:00',
+    endTime: '11:00',
     type: 'followup' as 'first_visit' | 'followup' | 'urgent',
     notes: ''
   });
@@ -47,8 +48,9 @@ export default function AppointmentModal({
         setFormData({
           patientId: appointment.patientId || '',
           patient_name: appointment.patient_name,
-          date: format(appointment.date, 'yyyy-MM-dd'),
-          time: appointment.time,
+          date: format(appointment.startTime, 'yyyy-MM-dd'),
+          startTime: format(appointment.startTime, 'HH:mm'),
+          endTime: format(appointment.endTime, 'HH:mm'),
           type: appointment.type,
           notes: appointment.notes
         });
@@ -57,7 +59,8 @@ export default function AppointmentModal({
           patientId: '',
           patient_name: '',
           date: defaultDate ? format(defaultDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-          time: defaultTime || '10:00',
+          startTime: defaultTime || '10:00',
+          endTime: defaultTime ? format(new Date(new Date(`2000-01-01T${defaultTime}`).getTime() + 60 * 60 * 1000), 'HH:mm') : '11:00',
           type: 'followup',
           notes: ''
         });
@@ -71,14 +74,17 @@ export default function AppointmentModal({
     e.preventDefault();
     const selectedPatient = patients.find(p => p.id === formData.patientId);
     
+    const start = new Date(`${formData.date}T${formData.startTime}`);
+    const end = new Date(`${formData.date}T${formData.endTime}`);
+
     await saveAppointment({
       ...appointment,
       patientId: formData.patientId,
       patient_name: selectedPatient ? selectedPatient.name : formData.patient_name,
       patient_phone: selectedPatient?.phone || '+34 600 000 000',
       patient_email: selectedPatient?.email || 'test@example.com',
-      date: new Date(formData.date),
-      time: formData.time,
+      startTime: start,
+      endTime: end,
       type: formData.type,
       notes: formData.notes
     });
@@ -144,8 +150,8 @@ export default function AppointmentModal({
               )}
             </div>
 
-            {/* Fecha y Hora */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            {/* Fecha y Horas */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) 1fr 1fr', gap: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>FECHA</label>
                 <div style={{ position: 'relative' }}>
@@ -154,10 +160,17 @@ export default function AppointmentModal({
                 </div>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>HORA</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>INICIO</label>
                 <div style={{ position: 'relative' }}>
-                  <Clock size={18} style={{ position: 'absolute', left: '12px', top: '11px', color: 'var(--text-muted)' }} />
-                  <input required name="time" value={formData.time} onChange={handleChange} type="time" style={{ width: '100%', padding: '10px 10px 10px 40px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
+                  <Clock size={16} style={{ position: 'absolute', left: '10px', top: '12px', color: 'var(--text-muted)' }} />
+                  <input required name="startTime" value={formData.startTime} onChange={handleChange} type="time" style={{ width: '100%', padding: '10px 10px 10px 32px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', fontSize: '13px' }} />
+                </div>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>FIN</label>
+                <div style={{ position: 'relative' }}>
+                  <Clock size={16} style={{ position: 'absolute', left: '10px', top: '12px', color: 'var(--text-muted)' }} />
+                  <input required name="endTime" value={formData.endTime} onChange={handleChange} type="time" style={{ width: '100%', padding: '10px 10px 10px 32px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', fontSize: '13px' }} />
                 </div>
               </div>
             </div>
