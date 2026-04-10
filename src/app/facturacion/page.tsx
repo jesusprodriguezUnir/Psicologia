@@ -1,25 +1,51 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { getInvoices } from '@/lib/api';
-import { Receipt, Download, Filter, Plus, CheckCircle, Clock } from 'lucide-react';
+import { getInvoices, getSettings, getPatients, deleteInvoice } from '@/lib/api';
+import { Receipt, Download, Filter, Plus, CheckCircle, Clock, Eye, Paperclip, Trash2 } from 'lucide-react';
 import InvoiceModal from '@/components/InvoiceModal';
+import InvoiceDetail from '@/components/InvoiceDetail';
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Invoice Selection & Printing
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [settings, setSettings] = useState<any>(null);
+  const [allPatients, setAllPatients] = useState<any[]>([]);
 
-  const loadInvoices = async () => {
+  // Filters State
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('');
+
+  const loadData = async () => {
     setIsLoading(true);
-    const data = await getInvoices();
-    setInvoices(data);
+    const [invData, settingsData, patientsData] = await Promise.all([
+      getInvoices(),
+      getSettings(),
+      getPatients()
+    ]);
+    setInvoices(invData);
+    setSettings(settingsData);
+    setAllPatients(patientsData);
     setIsLoading(false);
   };
 
   useEffect(() => {
-    loadInvoices();
+    loadData();
   }, []);
+
+  const loadInvoices = loadData; // Alias for compatibility with InvoiceModal callback
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar esta factura?')) {
+      await deleteInvoice(id);
+      loadData();
+    }
+  };
 
   const handleExport = () => {
     const headers = ['Nº Factura', 'Paciente', 'Fecha', 'Concepto', 'Importe', 'Estado'];
@@ -48,8 +74,15 @@ export default function InvoicesPage() {
     document.body.removeChild(link);
   };
 
-  const totalAmount = invoices.reduce((sum, inv) => sum + inv.amount, 0);
-  const paidAmount = invoices.filter(i => i.status === 'paid').reduce((sum, inv) => sum + inv.amount, 0);
+  const filteredInvoices = invoices.filter(inv => {
+    const matchesSearch = inv.patientName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || inv.status === statusFilter;
+    const matchesDate = !dateFilter || inv.date.includes(dateFilter);
+    return matchesSearch && matchesStatus && matchesDate;
+  });
+
+  const totalAmount = filteredInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+  const paidAmount = filteredInvoices.filter(i => i.status === 'paid').reduce((sum, inv) => sum + inv.amount, 0);
   const pendingAmount = totalAmount - paidAmount;
 
   return (
@@ -65,6 +98,36 @@ export default function InvoicesPage() {
             <Plus size={18} /> Nueva Factura
           </button>
         </div>
+      </div>
+      
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) 1fr 1fr', gap: '16px', marginBottom: '32px' }}>
+        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 20px' }}>
+          <Filter size={18} className="text-muted" />
+          <input 
+            type="text" 
+            placeholder="Buscar por paciente..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '14px' }}
+          />
+        </div>
+        <select 
+          className="card"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          style={{ padding: '12px 20px', fontSize: '14px', border: '1px solid var(--border-color)', outline: 'none', cursor: 'pointer' }}
+        >
+          <option value="all">Todos los estados</option>
+          <option value="paid">Pagadas</option>
+          <option value="pending">Pendientes</option>
+        </select>
+        <input 
+          type="month"
+          className="card"
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value)}
+          style={{ padding: '12px 20px', fontSize: '14px', border: '1px solid var(--border-color)', outline: 'none' }}
+        />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', marginBottom: '40px' }}>
@@ -105,17 +168,21 @@ export default function InvoicesPage() {
               <th style={{ padding: '16px 24px', fontWeight: 600, fontSize: '14px' }}>Paciente</th>
               <th style={{ padding: '16px 24px', fontWeight: 600, fontSize: '14px' }}>Fecha</th>
               <th style={{ padding: '16px 24px', fontWeight: 600, fontSize: '14px' }}>Concepto</th>
-              <th style={{ padding: '16px 24px', fontWeight: 600, fontSize: '14px' }}>Importe</th>
+               <th style={{ padding: '16px 24px', fontWeight: 600, fontSize: '14px' }}>Importe</th>
               <th style={{ padding: '16px 24px', fontWeight: 600, fontSize: '14px' }}>Estado</th>
+              <th style={{ padding: '16px 24px', fontWeight: 600, fontSize: '14px' }}></th>
             </tr>
           </thead>
           <tbody>
-            {invoices.map((inv) => (
+            {filteredInvoices.map((inv) => (
               <tr key={inv.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
                 <td style={{ padding: '18px 24px', fontWeight: 600, color: 'var(--color-primary-dark)' }}>{inv.id}</td>
                 <td style={{ padding: '18px 24px' }}>{inv.patientName}</td>
                 <td style={{ padding: '18px 24px', fontSize: '14px' }}>{inv.date}</td>
-                <td style={{ padding: '18px 24px', fontSize: '14px' }}>{inv.description}</td>
+                <td style={{ padding: '18px 24px', fontSize: '14px' }}>
+                  {inv.description}
+                  {inv.attachment && <Paperclip size={14} style={{ marginLeft: '8px', color: 'var(--text-muted)' }} title="Tiene adjunto" />}
+                </td>
                 <td style={{ padding: '18px 24px', fontWeight: 700 }}>{inv.amount.toFixed(2)}€</td>
                 <td style={{ padding: '18px 24px' }}>
                   <div style={{ 
@@ -124,6 +191,16 @@ export default function InvoicesPage() {
                     color: inv.status === 'paid' ? '#5a6954' : '#b08d2b'
                   }}>
                     {inv.status === 'paid' ? 'Pagada' : 'Pendiente'}
+                  </div>
+                </td>
+                <td style={{ padding: '18px 24px', textAlign: 'right' }}>
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                    <button onClick={() => setSelectedInvoice(inv)} className="btn btn-ghost" style={{ padding: '8px' }} title="Ver Factura">
+                      <Eye size={18} />
+                    </button>
+                    <button onClick={() => handleDelete(inv.id)} className="btn btn-ghost" style={{ padding: '8px', color: '#dc2626' }} title="Eliminar Factura">
+                      <Trash2 size={18} />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -137,6 +214,15 @@ export default function InvoicesPage() {
         onClose={() => setIsModalOpen(false)} 
         onSaved={loadInvoices}
       />
+
+      {selectedInvoice && (
+        <InvoiceDetail 
+          invoice={selectedInvoice}
+          settings={settings}
+          patient={allPatients.find(p => p.id === selectedInvoice.patientId)}
+          onClose={() => setSelectedInvoice(null)}
+        />
+      )}
     </div>
   );
 }

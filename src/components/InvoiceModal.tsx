@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { X, Receipt, Calendar, User, Save, Euro } from 'lucide-react';
+import { X, Receipt, Calendar, User, Save, Euro, Image as ImageIcon, Plus } from 'lucide-react';
 import { saveInvoice, getPatients } from '@/lib/api';
 
 interface InvoiceModalProps {
@@ -18,8 +18,20 @@ export default function InvoiceModal({ isOpen, onClose, onSaved }: InvoiceModalP
     amount: '',
     description: 'Sesión Psicoterapia Individual',
     status: 'pending',
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    attachment: null as string | null
   });
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, attachment: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   useEffect(() => {
     async function load() {
@@ -122,6 +134,31 @@ export default function InvoiceModal({ isOpen, onClose, onSaved }: InvoiceModalP
                 <option value="pending">Pendiente</option>
                 <option value="paid">Pagada</option>
               </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>ADJUNTAR TICKET / IMAGEN</label>
+              <div 
+                onClick={() => document.getElementById('attachment-upload')?.click()}
+                style={{ 
+                  width: '100%', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-color)', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', gap: '10px',
+                  backgroundColor: '#fafafa'
+                }}
+              >
+                {formData.attachment ? (
+                  <>
+                    <ImageIcon size={18} color="var(--color-primary)" />
+                    <span style={{ fontSize: '13px', color: 'var(--color-primary-dark)', fontWeight: 600 }}>Imagen adjuntada</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus size={18} color="var(--text-muted)" />
+                    <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Subir imagen del ticket</span>
+                  </>
+                )}
+                <input id="attachment-upload" type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+              </div>
             </div>
 
           </div>

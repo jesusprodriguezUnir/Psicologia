@@ -103,3 +103,32 @@ export async function saveInvoice(invoice: any) {
   }
   // Supabase implementation here...
 }
+
+export async function deleteInvoice(id: string) {
+  if (isMockMode()) {
+    mockStorage.deleteInvoice(id);
+    return Promise.resolve();
+  }
+  // Supabase implementation here...
+}
+
+// --- SETTINGS ---
+
+export async function getSettings() {
+  if (isMockMode()) return Promise.resolve(mockStorage.getSettings());
+  return null;
+}
+
+export async function saveSettings(settings: any) {
+  if (isMockMode()) {
+    mockStorage.saveSettings(settings);
+    return Promise.resolve();
+  }
+  // Supabase implementation here...
+}
+
+export function resetApplicationData() {
+  if (isMockMode()) {
+    mockStorage.resetData();
+  }
+}

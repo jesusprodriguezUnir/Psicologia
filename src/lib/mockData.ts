@@ -6,6 +6,7 @@
 const STORAGE_KEY_PATIENTS = 'clinic_mock_patients';
 const STORAGE_KEY_APPOINTMENTS = 'clinic_mock_appointments';
 const STORAGE_KEY_INVOICES = 'clinic_mock_invoices';
+const STORAGE_KEY_SETTINGS = 'clinic_mock_settings';
 
 // --- Initial Seed Data ---
 
@@ -74,6 +75,20 @@ const INITIAL_INVOICES = [
     description: 'Sesión Psicoterapia Individual'
   }
 ];
+
+const INITIAL_SETTINGS = {
+  userName: 'Jesús Rodríguez',
+  userEmail: 'jesus@example.com',
+  userPhone: '+34 600 000 000',
+  clinicName: 'Gabinete Psicológico',
+  clinicAddress: 'Calle Mayor 1, 28001 Madrid',
+  clinicNif: '12345678Z',
+  professionalId: 'MA-00000', // Nº Colegiado
+  logo: null,
+  legalNotes: 'En cumplimiento del RGPD, le informamos que sus datos serán tratados por Gabinete Psicológico con la finalidad de gestionar la relación profesional.',
+  defaultSessionDuration: 60,
+  currency: 'EUR'
+};
 
 // --- Store Management ---
 
@@ -144,5 +159,21 @@ export const mockStorage = {
       invoices.push({ ...inv, id: `INV-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}` });
     }
     saveStoredData(STORAGE_KEY_INVOICES, invoices);
+  },
+  deleteInvoice: (id: string) => {
+    const invoices = mockStorage.getInvoices();
+    const filtered = invoices.filter((i: any) => i.id !== id);
+    saveStoredData(STORAGE_KEY_INVOICES, filtered);
+  },
+
+  // Settings
+  getSettings: () => getStoredData(STORAGE_KEY_SETTINGS, INITIAL_SETTINGS),
+  saveSettings: (settings: any) => saveStoredData(STORAGE_KEY_SETTINGS, settings),
+  resetData: () => {
+    localStorage.removeItem(STORAGE_KEY_PATIENTS);
+    localStorage.removeItem(STORAGE_KEY_APPOINTMENTS);
+    localStorage.removeItem(STORAGE_KEY_INVOICES);
+    localStorage.removeItem(STORAGE_KEY_SETTINGS);
+    window.location.reload();
   }
 };
