@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Serenidad - Gestión de Gabinete Psicológico
 
-## Getting Started
+**Serenidad** es una plataforma de gestión integral para psicólogos y gabinetes de terapia. Diseñada con un enfoque cálido y acogedor, permite gestionar pacientes, citas y facturación de forma sencilla y profesional.
 
-First, run the development server:
+## 🚀 Características
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Agenda Inteligente**: Vistas Mensual, Semanal y Diaria (Agenda vertical por horas).
+- **Gestión de Pacientes**: Ficha completa con datos personales, clínicos y **datos bancarios (IBAN/Cuenta)**.
+- **Facturación**: Control de ingresos, estados de pago (Pagada/Pendiente) y generación de facturas.
+- **Confirmaciones Express**: Envío predefinido de recordatorios de cita por **WhatsApp**.
+- **Modo Mock / Producción**: Capacidad de funcionar en modo demostración con datos simulados o conectado a una base de datos real en la nube.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Stack Tecnológico
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Frontend**: Next.js (App Router), React, TypeScript.
+- **Estilos**: Vanilla CSS (Premium "Warm & Cozy" Design).
+- **Iconografía**: Lucide React.
+- **Lógica de Fechas**: date-fns.
+- **Base de Datos**: Supabase (PostgreSQL).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 💻 Desarrollo Local
 
-## Learn More
+1.  **Instalación**:
+    ```bash
+    npm install
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+2.  **Configuración de Entorno**:
+    Crea un archivo `.env.local` en la raíz del proyecto basándote en `.env.example`.
+    -   Para usar los datos de prueba (Demo): `NEXT_PUBLIC_USE_MOCKS=true`.
+    -   Para usar base de datos real: Introduce tus claves de Supabase.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3.  **Ejecutar**:
+    ```bash
+    npm run dev
+    ```
+    Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🚢 Despliegue en Vercel
 
-## Deploy on Vercel
+Esta aplicación está optimizada para ser desplegada en **Vercel**:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1.  Sube el código a un repositorio de GitHub.
+2.  Conecta el repositorio en el panel de Vercel.
+3.  Configura las **Environment Variables** en Vercel:
+    -   `NEXT_PUBLIC_USE_MOCKS`: `true` (para demo) o `false`.
+    -   `NEXT_PUBLIC_SUPABASE_URL`: Tu URL de Supabase.
+    -   `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Tu Anon Key de Supabase.
+4.  ¡Hecho! Vercel gestionará el proceso de build de Next.js automáticamente.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🗄️ Base de Datos (Supabase)
+
+Si decides usar la base de datos real:
+1.  Crea un nuevo proyecto en Supabase.
+2.  Copia el contenido del archivo `schema.sql` (en la raíz).
+3.  Pégalo y ejecútalo en el **SQL Editor** de Supabase para inicializar las tablas de Pacientes y Citas.
