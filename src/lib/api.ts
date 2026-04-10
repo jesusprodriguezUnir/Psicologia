@@ -46,15 +46,16 @@ export async function getAppointments(): Promise<Appointment[]> {
     if (!data) return [];
 
     return data.map((item: any) => {
-      const dbDate = new Date(item.start_time);
+      const start = new Date(item.start_time);
+      const end = new Date(start.getTime() + 60 * 60 * 1000); // Default duration 1h
       return {
         id: item.id,
         patientId: item.patients?.id,
         patient_name: item.patients?.name || 'Desconocido',
         patient_phone: item.patients?.phone || '',
         patient_email: item.patients?.email || '',
-        time: `${dbDate.getHours().toString().padStart(2, '0')}:${dbDate.getMinutes().toString().padStart(2, '0')}`,
-        date: dbDate,
+        startTime: start,
+        endTime: end,
         type: item.appointment_type,
         notes: item.patients?.notes || ''
       };
